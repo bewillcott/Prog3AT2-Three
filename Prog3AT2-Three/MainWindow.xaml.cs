@@ -29,7 +29,10 @@ namespace Prog3AT2_Three
 
     using SortingLib;
 
+    using System;
+    using System.Collections.Generic;
     using System.Collections.ObjectModel;
+    using System.ComponentModel;
     using System.Windows;
     using System.Windows.Controls;
 
@@ -54,6 +57,11 @@ namespace Prog3AT2_Three
         private const int MIN_SALARY = 10000;
 
         /// <summary>
+        /// The number of test runs.
+        /// </summary>
+        private const int NUM_OF_TEST_RUNS = 10;
+
+        /// <summary>
         /// The random seed.
         /// </summary>
         private const int RANDOM_SEED = 1234;
@@ -61,17 +69,17 @@ namespace Prog3AT2_Three
         /// <summary>
         /// The list.
         /// </summary>
-        private static readonly int[] list = new int[ARRAY_SIZE];
+        private readonly List<int> list = new(ARRAY_SIZE);
+
+        /// <summary>
+        /// The worker
+        /// </summary>
+        private readonly BackgroundWorker worker = new();
 
         /// <summary>
         /// The helper.
         /// </summary>
         private Helper helper;
-
-        /// <summary>
-        /// The number of test runs.
-        /// </summary>
-        private const int NUM_OF_TEST_RUNS = 10;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MainWindow"/> class.
@@ -80,9 +88,115 @@ namespace Prog3AT2_Three
         {
             InitializeComponent();
             helper = new Helper(list, RANDOM_SEED, MIN_SALARY, MAX_SALARY);
-            var temp = Algorithms.List;
+
+            // Setup the worker
+            worker.DoWork += Worker_DoWork;
+            worker.RunWorkerCompleted += Worker_RunWorkerCompleted;
+            worker.ProgressChanged += Worker_ProgressChanged;
+            worker.WorkerReportsProgress = true;
+            worker.WorkerSupportsCancellation = true;
+
+            // Setup combobox
             AlgorithmComboBox.ItemsSource = Algorithms.List;
             AlgorithmComboBox.SelectedIndex = 0;
+        }
+
+        private void Worker_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        /// <summary>
+        /// Handles the RunWorkerCompleted event of the Worker control.
+        /// </summary>
+        /// <remarks>
+        /// Initial code copied from:
+        /// https://docs.microsoft.com/en-us/dotnet/desktop/winforms/controls/how-to-run-an-operation-in-the-background?view=netframeworkdesktop-4.8
+        /// </remarks>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="RunWorkerCompletedEventArgs"/> instance containing the event data.</param>
+        private void Worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if (e.Cancelled)
+            {
+                // The user canceled the operation.
+                MessageBox.Show("Operation was canceled");
+            }
+            else if (e.Error != null)
+            {
+                // There was an error during the operation.
+                var msg = string.Format("An error occurred: {0}", e.Error.Message);
+                MessageBox.Show(msg);
+            }
+            else
+            {
+                // The operation completed normally.
+                DurationTextBox.Text = e.Result != null ? ((double)e.Result).ToString("F3") + @" seconds" : @"0.000 seconds";
+                SalaryListBox.ItemsSource = list;
+            }
+        }
+
+        /// <summary>
+        /// Handles the DoWork event of the Worker control.
+        /// </summary>
+        /// <remarks>
+        /// Initial code copied from:
+        /// https://docs.microsoft.com/en-us/dotnet/desktop/winforms/controls/how-to-run-an-operation-in-the-background?view=netframeworkdesktop-4.8
+        /// </remarks>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="DoWorkEventArgs"/> instance containing the event data.</param>
+        private void Worker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            // Do not access the form's BackgroundWorker reference directly.
+            // Instead, use the reference provided by the sender parameter.
+            var bw = sender as BackgroundWorker;
+
+            // Extract the argument.
+            var item = e.Argument as Algorithms;
+
+            // Start the time-consuming operation.
+            e.Result = TimeConsumingOperation(bw, item);
+
+            // If the operation was canceled by the user,
+            // set the DoWorkEventArgs.Cancel property to true.
+            if (bw.CancellationPending)
+            {
+                e.Cancel = true;
+            }
+        }
+
+        /// <summary>
+        /// Times the consuming operation.
+        /// </summary>
+        /// <param name="bw">The bw.</param>
+        /// <param name="item">The item.</param>
+        /// <returns></returns>
+        private object TimeConsumingOperation(BackgroundWorker bw, Algorithms item)
+        {
+            var rtn = 0.000;
+
+            if (item == Algorithms.ListSort)
+            {
+                rtn = helper.SortIt(null, @"list.Sort", bw.CancellationPending);
+            }
+            else if (item == Algorithms.HeapSort)
+            {
+                rtn = helper.SortIt(Sorting.HeapSort, $"Heap Sort", bw.CancellationPending);
+            }
+            else if (item == Algorithms.MergeSort)
+            {
+                rtn = helper.SortIt(Sorting.MergeSort, $"Merge Sort", bw.CancellationPending);
+            }
+            else if (item == Algorithms.QuickSort)
+            {
+                rtn = helper.SortIt(Sorting.QuickSort, $"Quick Sort", bw.CancellationPending);
+            }
+            else if (item == Algorithms.Unsorted)
+            {
+                helper.GenerateIntArray();
+            }
+
+            return rtn;
         }
 
         /// <summary>
@@ -92,7 +206,13 @@ namespace Prog3AT2_Three
         /// <param name="e">The e<see cref="SelectionChangedEventArgs"/>.</param>
         private void AlgorithmComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            MessageBox.Show($"You selected: {((sender as ComboBox).SelectedItem as Algorithms).Name}");
+            var item = (sender as ComboBox).SelectedItem as Algorithms;
+
+            SalaryListBox.ItemsSource = null;
+            DurationTextBox.Text = @"0.000 seconds";
+            worker.RunWorkerAsync(item);
+
+            e.Handled = true;
         }
 
         /// <summary>
@@ -100,13 +220,11 @@ namespace Prog3AT2_Three
         /// </summary>
         public sealed class Algorithms : SmartEnum<Algorithms>
         {
-            public static readonly Algorithms Unsorted = new(" Unsorted", "=Unsorted=", 0);
-            public static readonly Algorithms ArraySort = new(nameof(ArraySort), "Array Sort", 1);
             public static readonly Algorithms HeapSort = new(nameof(HeapSort), "Heap Sort", 2);
+            public static readonly Algorithms ListSort = new(nameof(ListSort), "List Sort", 1);
             public static readonly Algorithms MergeSort = new(nameof(MergeSort), "Merge Sort", 3);
             public static readonly Algorithms QuickSort = new(nameof(QuickSort), "Quick Sort", 4);
-
-            public string Label { get; }
+            public static readonly Algorithms Unsorted = new(" Unsorted", "=Unsorted=", 0);
 
             /// <summary>
             /// Initializes a new instance of the <see cref="Algorithms"/> class.
@@ -122,10 +240,17 @@ namespace Prog3AT2_Three
                 Label = label;
             }
 
+            public string Label { get; }
+
             public override string ToString()
             {
                 return Label;
             }
+        }
+
+        private void CancelButton_Click(object sender, RoutedEventArgs e)
+        {
+            worker.CancelAsync();
         }
     }
 }

@@ -26,6 +26,7 @@
 namespace SortingLib
 {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
 
     /// <summary>
@@ -36,7 +37,7 @@ namespace SortingLib
         /// <summary>
         /// Defines the list.
         /// </summary>
-        private readonly int[] list;
+        private readonly List<int> list;
 
         /// <summary>
         /// Defines the seed.
@@ -65,7 +66,7 @@ namespace SortingLib
         /// <param name="seed">The seed<see cref="int"/>.</param>
         /// <param name="min">The min<see cref="int"/>.</param>
         /// <param name="max">The max<see cref="int"/>.</param>
-        public Helper(int[] list, int seed, int min, int max)
+        public Helper(List<int> list, int seed, int min, int max)
         {
             this.list = list ?? throw new ArgumentNullException(nameof(list));
             this.seed = seed;
@@ -77,12 +78,14 @@ namespace SortingLib
         /// <summary>
         /// Generate an int array of random numbers.
         /// </summary>
-        private void IntArrayGenerate()
+        public void GenerateIntArray()
         {
             var r = new Random(seed);
-
-            for (int i = 0; i < list.Length; i++)
-                list[i] = r.Next(min, max);
+            list.Clear();
+            for (int i = 0; i < list.Capacity; i++)
+            {
+                list.Add(r.Next(min, max));
+            }
         }
 
         /// <summary>
@@ -90,15 +93,25 @@ namespace SortingLib
         /// </summary>
         /// <param name="methodName">Name of the method.</param>
         /// <param name="text">The text.</param>
+        /// <param name="canceled">todo: describe canceled parameter on SortIt</param>
         /// <returns>The elapsed time.</returns>
-        public double SortIt(Action<int[]> methodName, string text)
+        public double SortIt(Action<IList<int>, Ref<bool>> methodName, string text, Ref<bool> canceled)
         {
             Console.Write($"Processing {text} => ");
             double elapsedTime;  // time in second, accurate to about milliseconds
-            IntArrayGenerate();
+            GenerateIntArray();
 
             watch.Restart();
-            methodName?.Invoke(list);
+
+            if (methodName != null)
+            {
+                methodName?.Invoke(list, canceled);
+            }
+            else
+            {
+                list.Sort();
+            }
+
             watch.Stop();
 
             elapsedTime = watch.ElapsedMilliseconds / 1000.0;

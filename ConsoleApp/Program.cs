@@ -28,6 +28,7 @@ namespace ConsoleApp
     using SortingLib;
 
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Threading;
 
@@ -59,7 +60,7 @@ namespace ConsoleApp
         /// <summary>
         /// The list
         /// </summary>
-        private static readonly int[] list = new int[ARRAY_SIZE];
+        private static readonly List<int> list = new(ARRAY_SIZE);
 
         /// <summary>
         /// The number of test runs
@@ -80,17 +81,18 @@ namespace ConsoleApp
         {
             var helper = new Helper(list, RANDOM_SEED, MIN_SALARY, MAX_SALARY);
             var results = new double[4];
+            var canceled = new Ref<bool>(false);
 
             for (int i = 0; i < NUM_OF_TEST_RUNS; i++)
             {
-                results[0] += helper.SortIt(Array.Sort, $"Array.Sort [{i + 1}]");
-                results[1] += helper.SortIt(Sorting.HeapSort, $"Heap Sort [{i + 1}]");
-                results[2] += helper.SortIt(Sorting.MergeSort, $"Merge Sort [{i + 1}]");
-                results[3] += helper.SortIt(Sorting.QuickSort, $"Quick Sort [{i + 1}]");
+                results[0] += helper.SortIt(null, $"list.Sort [{i + 1}]", canceled);
+                results[1] += helper.SortIt(Sorting.HeapSort, $"Heap Sort [{i + 1}]", canceled);
+                results[2] += helper.SortIt(Sorting.MergeSort, $"Merge Sort [{i + 1}]", canceled);
+                results[3] += helper.SortIt(Sorting.QuickSort, $"Quick Sort [{i + 1}]", canceled);
             }
 
             Console.WriteLine($"Average results over {NUM_OF_TEST_RUNS} test runs:");
-            Console.WriteLine($" - Array.Sort : {results[0] / NUM_OF_TEST_RUNS:F3}");
+            Console.WriteLine($" - list.Sort  : {results[0] / NUM_OF_TEST_RUNS:F3}");
             Console.WriteLine($" - HeapSort   : {results[1] / NUM_OF_TEST_RUNS:F3}");
             Console.WriteLine($" - MergeSort  : {results[2] / NUM_OF_TEST_RUNS:F3}");
             Console.WriteLine($" - QuickSort  : {results[3] / NUM_OF_TEST_RUNS:F3}");

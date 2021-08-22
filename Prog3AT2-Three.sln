@@ -7,7 +7,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ConsoleApp", "ConsoleApp\Co
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SortingLib", "SortingLib\SortingLib.csproj", "{8EDDEFED-572A-48EC-913E-974FAE06128C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Prog3AT2-Three", "Prog3AT2-Three\Prog3AT2-Three.csproj", "{F9A313A3-9D54-42C8-A8EE-CE869F392F99}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Prog3AT2-Three", "Prog3AT2-Three\Prog3AT2-Three.csproj", "{F9A313A3-9D54-42C8-A8EE-CE869F392F99}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{2E9FDC36-B32B-4220-87B5-340537FC5946}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE = LICENSE
+		README.md = README.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

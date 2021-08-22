@@ -23,6 +23,8 @@
  * ****************************************************************
  */
 
+using System.Collections.Generic;
+
 namespace SortingLib
 {
     /// <summary>
@@ -38,52 +40,53 @@ namespace SortingLib
         /// This code was copied from:<br/>
         /// https://www.geeksforgeeks.org/heap-sort/
         /// <br/>and cleaned up.<br/>
-        /// - Renamed parameter
-        /// - Renamed variables
+        /// - Renamed parameter<br/>
+        /// - Renamed variables<br/>
         /// - Replaced some code with method call
         /// </remarks>
         /// <param name="list">The list.</param>
-        public static void HeapSort(int[] list)
+        /// <param name="canceled">todo: describe canceled parameter on HeapSort</param>
+        public static void HeapSort(IList<int> list, Ref<bool> canceled)
         {
-            var numOfElements = list.Length;
+            var numOfElements = list.Count;
 
             // Build heap (rearrange array)
-            for (int i = numOfElements / 2 - 1; i >= 0; i--)
-                Heapify(list, numOfElements, i);
+            for (int i = numOfElements / 2 - 1; i >= 0 && !canceled; i--)
+                Heapify(list, numOfElements, i, canceled);
 
             // One by one extract an element from heap
-            for (int i = numOfElements - 1; i > 0; i--)
+            for (int i = numOfElements - 1; i > 0 && !canceled; i--)
             {
                 // Move current root to end
                 // (BW) replaced with method call
                 Exchange(list, 0, i);
-                //int temp = arr[0];
-                //arr[0] = arr[i];
-                //arr[i] = temp;
 
                 // call max heapify on the reduced heap
-                Heapify(list, i, 0);
+                Heapify(list, i, 0, canceled);
             }
         }
 
         /// <summary>
         /// The Merge Sort algorithm.
         /// </summary>
+        /// <param name="list">The list.</param>
+        /// <param name="canceled">todo: describe canceled parameter on MergeSort</param>
         /// <remarks>
         /// Merge sort is based on the divide-and-conquer paradigm.<br/>
         /// This code was copied from:<br/>
         /// https://www.csharpstar.com/merge-sort-csharp-program/
         /// <br/>and cleaned up.
         /// </remarks>
-        /// <param name="list">The list.</param>
-        public static void MergeSort(int[] list)
+        public static void MergeSort(IList<int> list, Ref<bool> canceled)
         {
-            MergeSort_Divide(list, 0, list.Length - 1);
+            MergeSort_Divide(list, 0, list.Count - 1, canceled);
         }
 
         /// <summary>
         /// The Quick Sort algorithm.
         /// </summary>
+        /// <param name="list">The list.</param>
+        /// <param name="canceled">todo: describe canceled parameter on QuickSort</param>
         /// <remarks>
         /// Worst case: O(N²)<br/>
         /// Best case : O(N log N)<br/>
@@ -91,10 +94,9 @@ namespace SortingLib
         /// http://anh.cs.luc.edu/170/notes/CSharpHtml/sorting.html
         /// <br/>and cleaned up.
         /// </remarks>
-        /// <param name="list">The list.</param>
-        public static void QuickSort(int[] list)
+        public static void QuickSort(IList<int> list, Ref<bool> canceled)
         {
-            IntArrayQuickSort(list, 0, list.Length - 1);
+            IntArrayQuickSort(list, 0, list.Count - 1, canceled);
         }
 
         /// <summary>
@@ -109,30 +111,30 @@ namespace SortingLib
         /// <param name="list">The data.</param>
         /// <param name="m">The m.</param>
         /// <param name="n">The n.</param>
-        private static void Exchange(int[] list, int m, int n)
+        private static void Exchange(IList<int> list, int m, int n)
         {
             var temporary = list[m];
             list[m] = list[n];
             list[n] = temporary;
         }
 
-        // To heapify a subtree rooted with node i which is
-        // an index in list[]. n is size of heap
         /// <summary>
         /// Heapifies the specified list.
         /// </summary>
+        /// <param name="list">The list.</param>
+        /// <param name="sizeOfHeap">The size of heap.</param>
+        /// <param name="indexOfRoot">The index of root.</param>
+        /// <param name="canceled">todo: describe canceled parameter on Heapify</param>
         /// <remarks>
         /// This code was copied from:<br/>
         /// https://www.geeksforgeeks.org/heap-sort/
         /// <br/>and cleaned up.<br/>
-        /// - Renamed parameters
-        /// - Renamed variables
+        /// - Renamed parameters<br/>
+        /// - Renamed variables<br/>
         /// - Replaced some code with method call
         /// </remarks>
-        /// <param name="list">The list.</param>
-        /// <param name="sizeOfHeap">The size of heap.</param>
-        /// <param name="indexOfRoot">The index of root.</param>
-        private static void Heapify(int[] list, int sizeOfHeap, int indexOfRoot)
+        private static void Heapify(IList<int> list, int sizeOfHeap,
+            int indexOfRoot, Ref<bool> canceled)
         {
             var indexOfLargest = indexOfRoot; // Initialize largest as root
             var leftIndex = 2 * indexOfRoot + 1; // left = 2*i + 1
@@ -147,29 +149,31 @@ namespace SortingLib
                 indexOfLargest = rightIndex;
 
             // If largest is not root
-            if (indexOfLargest != indexOfRoot)
+            if (indexOfLargest != indexOfRoot && !canceled)
             {
                 // (BW) Replaced code with method call
                 Exchange(list, indexOfRoot, indexOfLargest);
 
                 // Recursively heapify the affected sub-tree
-                Heapify(list, sizeOfHeap, indexOfLargest);
+                Heapify(list, sizeOfHeap, indexOfLargest, canceled);
             }
         }
 
         /// <summary>
         /// Does a recursive quick sort.
         /// </summary>
+        /// <param name="list">The list of integers.</param>
+        /// <param name="leftIndex">The left index.</param>
+        /// <param name="rightIndex">The right index.</param>
+        /// <param name="canceled">todo: describe canceled parameter on IntArrayQuickSort</param>
         /// <remarks>
         /// This code was copied from:<br/>
         /// http://anh.cs.luc.edu/170/notes/CSharpHtml/sorting.html
         /// <br/>and cleaned up.
         /// - Renamed parameters
         /// </remarks>
-        /// <param name="list">The list of integers.</param>
-        /// <param name="leftIndex">The left index.</param>
-        /// <param name="rightIndex">The right index.</param>
-        private static void IntArrayQuickSort(int[] list, int leftIndex, int rightIndex)
+        private static void IntArrayQuickSort(IList<int> list, int leftIndex,
+            int rightIndex, Ref<bool> canceled)
         {
             int i, j;
             int x;
@@ -178,7 +182,8 @@ namespace SortingLib
             j = rightIndex;
 
             x = list[(leftIndex + rightIndex) / 2]; /* find pivot item */
-            while (true)
+
+            while (!canceled)
             {
                 while (list[i] < x)
                     i++;
@@ -193,15 +198,21 @@ namespace SortingLib
                 if (i > j)
                     break;
             }
+
             if (leftIndex < j)
-                IntArrayQuickSort(list, leftIndex, j);
+                IntArrayQuickSort(list, leftIndex, j, canceled);
             if (i < rightIndex)
-                IntArrayQuickSort(list, i, rightIndex);
+                IntArrayQuickSort(list, i, rightIndex, canceled);
         }
 
         /// <summary>
         /// Sort each sub-array merging them back together.
         /// </summary>
+        /// <param name="list">The integer array.</param>
+        /// <param name="leftIndex">The left index.</param>
+        /// <param name="midIndex">The middle index.</param>
+        /// <param name="rightIndex">The right index.</param>
+        /// <param name="canceled">todo: describe canceled parameter on MergeSort_Conquer</param>
         /// <remarks>
         /// First sub-array is <paramref name="list"/>[<paramref name="leftIndex"/> ..
         /// <paramref name="midIndex"/>]<br/>
@@ -211,11 +222,8 @@ namespace SortingLib
         /// https://www.geeksforgeeks.org/merge-sort/
         /// <br/>and cleaned up.
         /// </remarks>
-        /// <param name="list">The integer array.</param>
-        /// <param name="leftIndex">The left index.</param>
-        /// <param name="midIndex">The middle index.</param>
-        /// <param name="rightIndex">The right index.</param>
-        private static void MergeSort_Conquer(int[] list, int leftIndex, int midIndex, int rightIndex)
+        private static void MergeSort_Conquer(IList<int> list, int leftIndex, int midIndex,
+            int rightIndex, Ref<bool> canceled)
         {
             // Find sizes of two
             // sub-arrays to be merged
@@ -228,12 +236,12 @@ namespace SortingLib
             int leftArrayIndex, rightArrayIndex;
 
             // Copy data to temp arrays
-            for (leftArrayIndex = 0; leftArrayIndex < leftArraySize; ++leftArrayIndex)
+            for (leftArrayIndex = 0; leftArrayIndex < leftArraySize && !canceled; ++leftArrayIndex)
             {
                 leftArray[leftArrayIndex] = list[leftIndex + leftArrayIndex];
             }
 
-            for (rightArrayIndex = 0; rightArrayIndex < rightArraySize; ++rightArrayIndex)
+            for (rightArrayIndex = 0; rightArrayIndex < rightArraySize && !canceled; ++rightArrayIndex)
             {
                 rightArray[rightArrayIndex] = list[midIndex + 1 + rightArrayIndex];
             }
@@ -248,7 +256,7 @@ namespace SortingLib
             // Initial index of merged sub-array
             var listIndex = leftIndex;
 
-            while (leftArrayIndex < leftArraySize && rightArrayIndex < rightArraySize)
+            while (leftArrayIndex < leftArraySize && rightArrayIndex < rightArraySize && !canceled)
             {
                 // Sort back into original list array
                 if (leftArray[leftArrayIndex] <= rightArray[rightArrayIndex])
@@ -266,7 +274,7 @@ namespace SortingLib
             }
 
             // Copy remaining elements of leftArray, if any
-            while (leftArrayIndex < leftArraySize)
+            while (leftArrayIndex < leftArraySize && !canceled)
             {
                 list[listIndex] = leftArray[leftArrayIndex];
                 leftArrayIndex++;
@@ -274,7 +282,7 @@ namespace SortingLib
             }
 
             // Copy remaining elements of rightArray, if any
-            while (rightArrayIndex < rightArraySize)
+            while (rightArrayIndex < rightArraySize && !canceled)
             {
                 list[listIndex] = rightArray[rightArrayIndex];
                 rightArrayIndex++;
@@ -285,6 +293,10 @@ namespace SortingLib
         /// <summary>
         /// Divide the list into working sub-lists.
         /// </summary>
+        /// <param name="list">The list.</param>
+        /// <param name="leftIndex">Index of the left.</param>
+        /// <param name="rightIndex">Index of the right.</param>
+        /// <param name="canceled">todo: describe canceled parameter on MergeSort_Divide</param>
         /// <remarks>
         /// First sub-array is arr[l..m]<br/>
         /// Second sub-array is arr[m+1..r]<br/>
@@ -292,10 +304,8 @@ namespace SortingLib
         /// https://www.geeksforgeeks.org/merge-sort/
         /// <br/>and cleaned up.
         /// </remarks>
-        /// <param name="list">The list.</param>
-        /// <param name="leftIndex">Index of the left.</param>
-        /// <param name="rightIndex">Index of the right.</param>
-        private static void MergeSort_Divide(int[] list, int leftIndex, int rightIndex)
+        private static void MergeSort_Divide(IList<int> list, int leftIndex,
+            int rightIndex, Ref<bool> canceled)
         {
             if (leftIndex < rightIndex)
             {
@@ -305,11 +315,11 @@ namespace SortingLib
 
                 // Sort first and
                 // second halves
-                MergeSort_Divide(list, leftIndex, midIndex);
-                MergeSort_Divide(list, midIndex + 1, rightIndex);
+                MergeSort_Divide(list, leftIndex, midIndex, canceled);
+                MergeSort_Divide(list, midIndex + 1, rightIndex, canceled);
 
                 // Merge the sorted halves
-                MergeSort_Conquer(list, leftIndex, midIndex, rightIndex);
+                MergeSort_Conquer(list, leftIndex, midIndex, rightIndex, canceled);
             }
         }
     }
