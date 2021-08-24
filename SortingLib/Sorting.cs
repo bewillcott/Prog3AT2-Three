@@ -24,6 +24,7 @@
  */
 
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace SortingLib
 {
@@ -35,6 +36,8 @@ namespace SortingLib
         /// <summary>
         ///The Heap Sort algorithm.
         /// </summary>
+        /// <param name="list">The list.</param>
+        /// <param name="bw">Worker thread.</param>
         /// <remarks>
         /// O(n Log n)
         /// This code was copied from:<br/>
@@ -44,25 +47,23 @@ namespace SortingLib
         /// - Renamed variables<br/>
         /// - Replaced some code with method call
         /// </remarks>
-        /// <param name="list">The list.</param>
-        /// <param name="canceled">todo: describe canceled parameter on HeapSort</param>
-        public static void HeapSort(IList<int> list, Ref<bool> canceled)
+        public static void HeapSort(IList<int> list, BackgroundWorker bw)
         {
             var numOfElements = list.Count;
 
             // Build heap (rearrange array)
-            for (int i = numOfElements / 2 - 1; i >= 0 && !canceled; i--)
-                Heapify(list, numOfElements, i, canceled);
+            for (int i = numOfElements / 2 - 1; i >= 0 && (bw == null || !bw.CancellationPending); i--)
+                Heapify(list, numOfElements, i, bw);
 
             // One by one extract an element from heap
-            for (int i = numOfElements - 1; i > 0 && !canceled; i--)
+            for (int i = numOfElements - 1; i > 0 && (bw == null || !bw.CancellationPending); i--)
             {
                 // Move current root to end
                 // (BW) replaced with method call
                 Exchange(list, 0, i);
 
                 // call max heapify on the reduced heap
-                Heapify(list, i, 0, canceled);
+                Heapify(list, i, 0, bw);
             }
         }
 
@@ -70,23 +71,23 @@ namespace SortingLib
         /// The Merge Sort algorithm.
         /// </summary>
         /// <param name="list">The list.</param>
-        /// <param name="canceled">todo: describe canceled parameter on MergeSort</param>
+        /// <param name="bw">Worker thread.</param>
         /// <remarks>
         /// Merge sort is based on the divide-and-conquer paradigm.<br/>
         /// This code was copied from:<br/>
         /// https://www.csharpstar.com/merge-sort-csharp-program/
         /// <br/>and cleaned up.
         /// </remarks>
-        public static void MergeSort(IList<int> list, Ref<bool> canceled)
+        public static void MergeSort(IList<int> list, BackgroundWorker bw)
         {
-            MergeSort_Divide(list, 0, list.Count - 1, canceled);
+            MergeSort_Divide(list, 0, list.Count - 1, bw);
         }
 
         /// <summary>
         /// The Quick Sort algorithm.
         /// </summary>
         /// <param name="list">The list.</param>
-        /// <param name="canceled">todo: describe canceled parameter on QuickSort</param>
+        /// <param name="bw">Worker thread.</param>
         /// <remarks>
         /// Worst case: O(N²)<br/>
         /// Best case : O(N log N)<br/>
@@ -94,9 +95,9 @@ namespace SortingLib
         /// http://anh.cs.luc.edu/170/notes/CSharpHtml/sorting.html
         /// <br/>and cleaned up.
         /// </remarks>
-        public static void QuickSort(IList<int> list, Ref<bool> canceled)
+        public static void QuickSort(IList<int> list, BackgroundWorker bw)
         {
-            IntArrayQuickSort(list, 0, list.Count - 1, canceled);
+            IntArrayQuickSort(list, 0, list.Count - 1, bw);
         }
 
         /// <summary>
@@ -124,7 +125,7 @@ namespace SortingLib
         /// <param name="list">The list.</param>
         /// <param name="sizeOfHeap">The size of heap.</param>
         /// <param name="indexOfRoot">The index of root.</param>
-        /// <param name="canceled">todo: describe canceled parameter on Heapify</param>
+        /// <param name="bw">Worker thread.</param>
         /// <remarks>
         /// This code was copied from:<br/>
         /// https://www.geeksforgeeks.org/heap-sort/
@@ -134,7 +135,7 @@ namespace SortingLib
         /// - Replaced some code with method call
         /// </remarks>
         private static void Heapify(IList<int> list, int sizeOfHeap,
-            int indexOfRoot, Ref<bool> canceled)
+            int indexOfRoot, BackgroundWorker bw)
         {
             var indexOfLargest = indexOfRoot; // Initialize largest as root
             var leftIndex = 2 * indexOfRoot + 1; // left = 2*i + 1
@@ -149,13 +150,13 @@ namespace SortingLib
                 indexOfLargest = rightIndex;
 
             // If largest is not root
-            if (indexOfLargest != indexOfRoot && !canceled)
+            if (indexOfLargest != indexOfRoot && (bw == null || !bw.CancellationPending))
             {
                 // (BW) Replaced code with method call
                 Exchange(list, indexOfRoot, indexOfLargest);
 
                 // Recursively heapify the affected sub-tree
-                Heapify(list, sizeOfHeap, indexOfLargest, canceled);
+                Heapify(list, sizeOfHeap, indexOfLargest, bw);
             }
         }
 
@@ -165,7 +166,7 @@ namespace SortingLib
         /// <param name="list">The list of integers.</param>
         /// <param name="leftIndex">The left index.</param>
         /// <param name="rightIndex">The right index.</param>
-        /// <param name="canceled">todo: describe canceled parameter on IntArrayQuickSort</param>
+        /// <param name="bw">Worker thread.</param>
         /// <remarks>
         /// This code was copied from:<br/>
         /// http://anh.cs.luc.edu/170/notes/CSharpHtml/sorting.html
@@ -173,7 +174,7 @@ namespace SortingLib
         /// - Renamed parameters
         /// </remarks>
         private static void IntArrayQuickSort(IList<int> list, int leftIndex,
-            int rightIndex, Ref<bool> canceled)
+            int rightIndex, BackgroundWorker bw)
         {
             int i, j;
             int x;
@@ -183,7 +184,7 @@ namespace SortingLib
 
             x = list[(leftIndex + rightIndex) / 2]; /* find pivot item */
 
-            while (!canceled)
+            while (bw == null || !bw.CancellationPending)
             {
                 while (list[i] < x)
                     i++;
@@ -200,9 +201,9 @@ namespace SortingLib
             }
 
             if (leftIndex < j)
-                IntArrayQuickSort(list, leftIndex, j, canceled);
+                IntArrayQuickSort(list, leftIndex, j, bw);
             if (i < rightIndex)
-                IntArrayQuickSort(list, i, rightIndex, canceled);
+                IntArrayQuickSort(list, i, rightIndex, bw);
         }
 
         /// <summary>
@@ -212,7 +213,7 @@ namespace SortingLib
         /// <param name="leftIndex">The left index.</param>
         /// <param name="midIndex">The middle index.</param>
         /// <param name="rightIndex">The right index.</param>
-        /// <param name="canceled">todo: describe canceled parameter on MergeSort_Conquer</param>
+        /// <param name="bw">Worker thread.</param>
         /// <remarks>
         /// First sub-array is <paramref name="list"/>[<paramref name="leftIndex"/> ..
         /// <paramref name="midIndex"/>]<br/>
@@ -223,7 +224,7 @@ namespace SortingLib
         /// <br/>and cleaned up.
         /// </remarks>
         private static void MergeSort_Conquer(IList<int> list, int leftIndex, int midIndex,
-            int rightIndex, Ref<bool> canceled)
+            int rightIndex, BackgroundWorker bw)
         {
             // Find sizes of two
             // sub-arrays to be merged
@@ -236,12 +237,14 @@ namespace SortingLib
             int leftArrayIndex, rightArrayIndex;
 
             // Copy data to temp arrays
-            for (leftArrayIndex = 0; leftArrayIndex < leftArraySize && !canceled; ++leftArrayIndex)
+            for (leftArrayIndex = 0; leftArrayIndex < leftArraySize &&
+                (bw == null || !bw.CancellationPending); ++leftArrayIndex)
             {
                 leftArray[leftArrayIndex] = list[leftIndex + leftArrayIndex];
             }
 
-            for (rightArrayIndex = 0; rightArrayIndex < rightArraySize && !canceled; ++rightArrayIndex)
+            for (rightArrayIndex = 0; rightArrayIndex < rightArraySize &&
+                (bw == null || !bw.CancellationPending); ++rightArrayIndex)
             {
                 rightArray[rightArrayIndex] = list[midIndex + 1 + rightArrayIndex];
             }
@@ -256,7 +259,8 @@ namespace SortingLib
             // Initial index of merged sub-array
             var listIndex = leftIndex;
 
-            while (leftArrayIndex < leftArraySize && rightArrayIndex < rightArraySize && !canceled)
+            while (leftArrayIndex < leftArraySize && rightArrayIndex < rightArraySize &&
+                (bw == null || !bw.CancellationPending))
             {
                 // Sort back into original list array
                 if (leftArray[leftArrayIndex] <= rightArray[rightArrayIndex])
@@ -274,7 +278,7 @@ namespace SortingLib
             }
 
             // Copy remaining elements of leftArray, if any
-            while (leftArrayIndex < leftArraySize && !canceled)
+            while (leftArrayIndex < leftArraySize && (bw == null || !bw.CancellationPending))
             {
                 list[listIndex] = leftArray[leftArrayIndex];
                 leftArrayIndex++;
@@ -282,7 +286,7 @@ namespace SortingLib
             }
 
             // Copy remaining elements of rightArray, if any
-            while (rightArrayIndex < rightArraySize && !canceled)
+            while (rightArrayIndex < rightArraySize && (bw == null || !bw.CancellationPending))
             {
                 list[listIndex] = rightArray[rightArrayIndex];
                 rightArrayIndex++;
@@ -296,7 +300,7 @@ namespace SortingLib
         /// <param name="list">The list.</param>
         /// <param name="leftIndex">Index of the left.</param>
         /// <param name="rightIndex">Index of the right.</param>
-        /// <param name="canceled">todo: describe canceled parameter on MergeSort_Divide</param>
+        /// <param name="bw">Worker thread.</param>
         /// <remarks>
         /// First sub-array is arr[l..m]<br/>
         /// Second sub-array is arr[m+1..r]<br/>
@@ -305,7 +309,7 @@ namespace SortingLib
         /// <br/>and cleaned up.
         /// </remarks>
         private static void MergeSort_Divide(IList<int> list, int leftIndex,
-            int rightIndex, Ref<bool> canceled)
+            int rightIndex, BackgroundWorker bw)
         {
             if (leftIndex < rightIndex)
             {
@@ -315,11 +319,11 @@ namespace SortingLib
 
                 // Sort first and
                 // second halves
-                MergeSort_Divide(list, leftIndex, midIndex, canceled);
-                MergeSort_Divide(list, midIndex + 1, rightIndex, canceled);
+                MergeSort_Divide(list, leftIndex, midIndex, bw);
+                MergeSort_Divide(list, midIndex + 1, rightIndex, bw);
 
                 // Merge the sorted halves
-                MergeSort_Conquer(list, leftIndex, midIndex, rightIndex, canceled);
+                MergeSort_Conquer(list, leftIndex, midIndex, rightIndex, bw);
             }
         }
     }

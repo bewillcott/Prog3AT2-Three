@@ -30,8 +30,8 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="MainWindow" Height="400" Width="220"
-        WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize" WindowStyle="ThreeDBorderWindow">
+        Title="Prog3 AT2 Three" Height="400" Width="220"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize"  WindowStyle="ThreeDBorderWindow">
     <!--SizeToContent="WidthAndHeight">-->
     <Grid Margin="10">
         <Grid.RowDefinitions>
@@ -46,13 +46,17 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <ComboBox Name="AlgorithmComboBox" SelectionChanged="AlgorithmComboBox_SelectionChanged" IsEditable="False" />
-                <Button Grid.Column="1" Padding="5,0" Name="CancelButton" Click="CancelButton_Click">X</Button>
+                <Button Grid.Column="1" Padding="5,0" Name="CancelButton" Click="CancelButton_Click"
+                        Width="20">X</Button>
             </Grid>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
                 <Label>Sorting Duration:</Label>
                 <TextBlock Name="DurationTextBox" VerticalAlignment="Center" />
             </StackPanel>
+            <Grid>
+                <ProgressBar Name="SortingProgressBar" Height="10" />
+            </Grid>
         </StackPanel>
 
         <Grid Grid.Row="1" Margin="0,5,0,0">

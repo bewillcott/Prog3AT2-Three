@@ -27,6 +27,7 @@ namespace SortingLib
 {
     using System;
     using System.Collections.Generic;
+    using System.ComponentModel;
     using System.Diagnostics;
 
     /// <summary>
@@ -93,9 +94,9 @@ namespace SortingLib
         /// </summary>
         /// <param name="methodName">Name of the method.</param>
         /// <param name="text">The text.</param>
-        /// <param name="canceled">todo: describe canceled parameter on SortIt</param>
+        /// <param name="bw">Worker thread.</param>
         /// <returns>The elapsed time.</returns>
-        public double SortIt(Action<IList<int>, Ref<bool>> methodName, string text, Ref<bool> canceled)
+        public double SortIt(Action<IList<int>, BackgroundWorker> methodName, string text, BackgroundWorker bw)
         {
             Console.Write($"Processing {text} => ");
             double elapsedTime;  // time in second, accurate to about milliseconds
@@ -105,7 +106,7 @@ namespace SortingLib
 
             if (methodName != null)
             {
-                methodName?.Invoke(list, canceled);
+                methodName?.Invoke(list, bw);
             }
             else
             {
@@ -115,7 +116,7 @@ namespace SortingLib
             watch.Stop();
 
             elapsedTime = watch.ElapsedMilliseconds / 1000.0;
-            Console.WriteLine("{0:F3}", elapsedTime);
+            Console.WriteLine($"{elapsedTime:F3}");
 
             return elapsedTime;
         }

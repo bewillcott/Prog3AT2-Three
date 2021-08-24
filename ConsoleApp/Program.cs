@@ -30,6 +30,8 @@ namespace ConsoleApp
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.IO;
+    using System.Text;
     using System.Threading;
 
     /// <summary>
@@ -43,6 +45,11 @@ namespace ConsoleApp
         private const int ARRAY_SIZE = 10000000;
 
         /// <summary>
+        /// The filename
+        /// </summary>
+        private const string FILENAME = @"sort_duration.csv";
+
+        /// <summary>
         /// The maximum salary
         /// </summary>
         private const int MAX_SALARY = 10000000;
@@ -53,6 +60,11 @@ namespace ConsoleApp
         private const int MIN_SALARY = 10000;
 
         /// <summary>
+        /// The number of test runs
+        /// </summary>
+        private const int NUM_OF_TEST_RUNS = 10;
+
+        /// <summary>
         /// The random seed
         /// </summary>
         private const int RANDOM_SEED = 1234;
@@ -61,11 +73,6 @@ namespace ConsoleApp
         /// The list
         /// </summary>
         private static readonly List<int> list = new(ARRAY_SIZE);
-
-        /// <summary>
-        /// The number of test runs
-        /// </summary>
-        private const int NUM_OF_TEST_RUNS = 10;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="Program"/> class.
@@ -80,22 +87,179 @@ namespace ConsoleApp
         public static void Main()
         {
             var helper = new Helper(list, RANDOM_SEED, MIN_SALARY, MAX_SALARY);
-            var results = new double[4];
-            var canceled = new Ref<bool>(false);
+            var rows = new CsvRow[] {
+                new(@"list.Sort"),
+                new(@"Heap Sort"),
+                new(@"Merge Sort"),
+                new(@"Quick Sort")
+            };
 
             for (int i = 0; i < NUM_OF_TEST_RUNS; i++)
             {
-                results[0] += helper.SortIt(null, $"list.Sort [{i + 1}]", canceled);
-                results[1] += helper.SortIt(Sorting.HeapSort, $"Heap Sort [{i + 1}]", canceled);
-                results[2] += helper.SortIt(Sorting.MergeSort, $"Merge Sort [{i + 1}]", canceled);
-                results[3] += helper.SortIt(Sorting.QuickSort, $"Quick Sort [{i + 1}]", canceled);
+                rows[0].Add(helper.SortIt(null, $"list.Sort [{i + 1}]", null));
+                rows[1].Add(helper.SortIt(Sorting.HeapSort, $"Heap Sort [{i + 1}]", null));
+                rows[2].Add(helper.SortIt(Sorting.MergeSort, $"Merge Sort [{i + 1}]", null));
+                rows[3].Add(helper.SortIt(Sorting.QuickSort, $"Quick Sort [{i + 1}]", null));
             }
 
-            Console.WriteLine($"Average results over {NUM_OF_TEST_RUNS} test runs:");
-            Console.WriteLine($" - list.Sort  : {results[0] / NUM_OF_TEST_RUNS:F3}");
-            Console.WriteLine($" - HeapSort   : {results[1] / NUM_OF_TEST_RUNS:F3}");
-            Console.WriteLine($" - MergeSort  : {results[2] / NUM_OF_TEST_RUNS:F3}");
-            Console.WriteLine($" - QuickSort  : {results[3] / NUM_OF_TEST_RUNS:F3}");
+            Console.WriteLine($"Writing data to CSV filename: {FILENAME}");
+
+            if (WriteCSVData(FILENAME, rows))
+            {
+                Console.WriteLine(@"Data written.");
+            }
+            else
+            {
+                Console.WriteLine(@"Failed to write data.");
+            }
+
+            Console.WriteLine($"\nAverage results over {NUM_OF_TEST_RUNS} test runs:");
+            Console.WriteLine($" - list.Sort  : {rows[0].Avg:F3}");
+            Console.WriteLine($" - HeapSort   : {rows[1].Avg:F3}");
+            Console.WriteLine($" - MergeSort  : {rows[2].Avg:F3}");
+            Console.WriteLine($" - QuickSort  : {rows[3].Avg:F3}");
+        }
+
+        /// <summary>
+        /// Writes the CSV data.
+        /// </summary>
+        /// <param name="fileName">Name of the file.</param>
+        /// <param name="rows">The rows.</param>
+        /// <returns></returns>
+        private static bool WriteCSVData(string fileName, CsvRow[] rows)
+        {
+            var rtn = false;
+
+            if (!(String.IsNullOrWhiteSpace(fileName)))
+            {
+                try
+                {
+                    using (StreamWriter sw = new(fileName))
+                    {
+                        foreach (var row in rows)
+                        {
+                            sw.WriteLine(row.CSVString());
+                        }
+                    }
+
+                    rtn = true;
+                }
+                catch (Exception ex)
+                {
+                    Console.Error.WriteLine($"ERROR: Failed to write to CSV file!\n{ex.Message}");
+                }
+            }
+
+            return rtn;
+        }
+
+        /// <summary>
+        /// Contains data relevant to a single CSV row.
+        /// </summary>
+        /// <remarks>
+        /// The information is specific to a single sorting algorithm, and the
+        /// data collected over multiple test runs.
+        /// <para/>
+        /// The original idea for this class came from reading this site:<br/>
+        /// https://www.codeproject.com/articles/415732/reading-and-writing-csv-files-in-csharp
+        /// </remarks>
+        /// <seealso cref="System.Collections.Generic.List&lt;System.Double&gt;" />
+        private class CsvRow : List<double>
+        {
+            /// <summary>
+            /// Initializes a new instance of the <see cref="CsvRow"/> class.
+            /// </summary>
+            /// <param name="algorithm">The algorithm.</param>
+            public CsvRow(string algorithm)
+            {
+                Algorithm = algorithm;
+            }
+
+            /// <summary>
+            /// Gets or sets the algorithm.
+            /// </summary>
+            public string Algorithm { get; set; }
+
+            /// <summary>
+            /// Gets the average.
+            /// </summary>
+            /// <value>
+            /// The average.
+            /// </value>
+            public double Avg
+            {
+                get
+                {
+                    double total = 0;
+
+                    foreach (var item in this)
+                    {
+                        total += item;
+                    }
+
+                    return total / Count;
+                }
+            }
+
+            /// <summary>
+            /// Parses a CSV string.
+            /// </summary>
+            /// <param name="csvString">The CSV string.</param>
+            /// <returns>A new <see cref="CsvRow"/>.</returns>
+            public static CsvRow ParseCSV(string csvString)
+            {
+                CsvRow rtn = null;
+
+                if (!String.IsNullOrWhiteSpace(csvString))
+                {
+                    var data = csvString.Split(',');
+
+                    if (data.Length > 0)
+                    {
+                        try
+                        {
+                            rtn = new(data[0]);
+                            rtn.Algorithm = data[0];
+
+                            foreach (var item in data)
+                            {
+                                rtn.Add(double.Parse(item));
+                            }
+                        }
+                        catch (Exception)
+                        { // Quietly ignore it }
+                            rtn = null;
+                        }
+                    }
+                }
+
+                return rtn;
+            }
+
+            /// <summary>
+            /// Gets the CSV string for this row.
+            /// </summary>
+            /// <returns></returns>
+            public string CSVString()
+            {
+                return ToString();
+            }
+
+            /// <summary>
+            /// Converts to string.
+            /// </summary>
+            /// <returns></returns>
+            public override string ToString()
+            {
+                var sb = new StringBuilder(Algorithm);
+
+                foreach (var item in this)
+                {
+                    sb.Append(',').Append(item);
+                }
+
+                return sb.ToString();
+            }
         }
     }
 }

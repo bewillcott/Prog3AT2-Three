@@ -57,14 +57,14 @@ namespace Prog3AT2_Three
         private const int MIN_SALARY = 10000;
 
         /// <summary>
-        /// The number of test runs.
-        /// </summary>
-        private const int NUM_OF_TEST_RUNS = 10;
-
-        /// <summary>
         /// The random seed.
         /// </summary>
         private const int RANDOM_SEED = 1234;
+
+        /// <summary>
+        /// The helper.
+        /// </summary>
+        private readonly Helper helper;
 
         /// <summary>
         /// The list.
@@ -77,11 +77,6 @@ namespace Prog3AT2_Three
         private readonly BackgroundWorker worker = new();
 
         /// <summary>
-        /// The helper.
-        /// </summary>
-        private Helper helper;
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="MainWindow"/> class.
         /// </summary>
         public MainWindow()
@@ -92,8 +87,6 @@ namespace Prog3AT2_Three
             // Setup the worker
             worker.DoWork += Worker_DoWork;
             worker.RunWorkerCompleted += Worker_RunWorkerCompleted;
-            worker.ProgressChanged += Worker_ProgressChanged;
-            worker.WorkerReportsProgress = true;
             worker.WorkerSupportsCancellation = true;
 
             // Setup combobox
@@ -101,39 +94,67 @@ namespace Prog3AT2_Three
             AlgorithmComboBox.SelectedIndex = 0;
         }
 
-        private void Worker_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        /// <summary>
+        /// The AlgorithmComboBox_SelectionChanged.
+        /// </summary>
+        /// <param name="sender">The sender<see cref="object"/>.</param>
+        /// <param name="e">The e<see cref="SelectionChangedEventArgs"/>.</param>
+        private void AlgorithmComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            throw new System.NotImplementedException();
+            var item = (sender as ComboBox).SelectedItem as Algorithms;
+
+            SalaryListBox.ItemsSource = null;
+            DurationTextBox.Text = @"0.000 seconds";
+            SortingProgressBar.IsIndeterminate = true;
+
+            worker.RunWorkerAsync(item);
+
+            e.Handled = true;
         }
 
         /// <summary>
-        /// Handles the RunWorkerCompleted event of the Worker control.
+        /// Handles the Click event of the CancelButton control.
         /// </summary>
-        /// <remarks>
-        /// Initial code copied from:
-        /// https://docs.microsoft.com/en-us/dotnet/desktop/winforms/controls/how-to-run-an-operation-in-the-background?view=netframeworkdesktop-4.8
-        /// </remarks>
         /// <param name="sender">The source of the event.</param>
-        /// <param name="e">The <see cref="RunWorkerCompletedEventArgs"/> instance containing the event data.</param>
-        private void Worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        /// <param name="e">The <see cref="System.Windows.RoutedEventArgs"/> instance containing the event data.</param>
+        /// <returns></returns>
+        private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
-            if (e.Cancelled)
+            worker.CancelAsync();
+        }
+
+        /// <summary>
+        /// Times the consuming operation.
+        /// </summary>
+        /// <param name="bw">The bw.</param>
+        /// <param name="item">The item.</param>
+        /// <returns></returns>
+        private object TimeConsumingOperation(BackgroundWorker bw, Algorithms item)
+        {
+            var rtn = 0.000;
+
+            if (item == Algorithms.ListSort)
             {
-                // The user canceled the operation.
-                MessageBox.Show("Operation was canceled");
+                rtn = helper.SortIt(null, @"list.Sort", bw);
             }
-            else if (e.Error != null)
+            else if (item == Algorithms.HeapSort)
             {
-                // There was an error during the operation.
-                var msg = string.Format("An error occurred: {0}", e.Error.Message);
-                MessageBox.Show(msg);
+                rtn = helper.SortIt(Sorting.HeapSort, $"Heap Sort", bw);
             }
-            else
+            else if (item == Algorithms.MergeSort)
             {
-                // The operation completed normally.
-                DurationTextBox.Text = e.Result != null ? ((double)e.Result).ToString("F3") + @" seconds" : @"0.000 seconds";
-                SalaryListBox.ItemsSource = list;
+                rtn = helper.SortIt(Sorting.MergeSort, $"Merge Sort", bw);
             }
+            else if (item == Algorithms.QuickSort)
+            {
+                rtn = helper.SortIt(Sorting.QuickSort, $"Quick Sort", bw);
+            }
+            else if (item == Algorithms.Unsorted)
+            {
+                helper.GenerateIntArray();
+            }
+
+            return rtn;
         }
 
         /// <summary>
@@ -166,53 +187,35 @@ namespace Prog3AT2_Three
         }
 
         /// <summary>
-        /// Times the consuming operation.
+        /// Handles the RunWorkerCompleted event of the Worker control.
         /// </summary>
-        /// <param name="bw">The bw.</param>
-        /// <param name="item">The item.</param>
-        /// <returns></returns>
-        private object TimeConsumingOperation(BackgroundWorker bw, Algorithms item)
+        /// <remarks>
+        /// Initial code copied from:
+        /// https://docs.microsoft.com/en-us/dotnet/desktop/winforms/controls/how-to-run-an-operation-in-the-background?view=netframeworkdesktop-4.8
+        /// </remarks>
+        /// <param name="sender">The source of the event.</param>
+        /// <param name="e">The <see cref="RunWorkerCompletedEventArgs"/> instance containing the event data.</param>
+        private void Worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            var rtn = 0.000;
+            SortingProgressBar.IsIndeterminate = false;
 
-            if (item == Algorithms.ListSort)
+            if (e.Cancelled)
             {
-                rtn = helper.SortIt(null, @"list.Sort", bw.CancellationPending);
+                // The user canceled the operation.
+                MessageBox.Show("Operation was canceled");
             }
-            else if (item == Algorithms.HeapSort)
+            else if (e.Error != null)
             {
-                rtn = helper.SortIt(Sorting.HeapSort, $"Heap Sort", bw.CancellationPending);
+                // There was an error during the operation.
+                var msg = $"An error occurred: {e.Error.Message}";
+                MessageBox.Show(msg);
             }
-            else if (item == Algorithms.MergeSort)
+            else
             {
-                rtn = helper.SortIt(Sorting.MergeSort, $"Merge Sort", bw.CancellationPending);
+                // The operation completed normally.
+                DurationTextBox.Text = e.Result != null ? ((double)e.Result).ToString("F3") + @" seconds" : @"0.000 seconds";
+                SalaryListBox.ItemsSource = list;
             }
-            else if (item == Algorithms.QuickSort)
-            {
-                rtn = helper.SortIt(Sorting.QuickSort, $"Quick Sort", bw.CancellationPending);
-            }
-            else if (item == Algorithms.Unsorted)
-            {
-                helper.GenerateIntArray();
-            }
-
-            return rtn;
-        }
-
-        /// <summary>
-        /// The AlgorithmComboBox_SelectionChanged.
-        /// </summary>
-        /// <param name="sender">The sender<see cref="object"/>.</param>
-        /// <param name="e">The e<see cref="SelectionChangedEventArgs"/>.</param>
-        private void AlgorithmComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            var item = (sender as ComboBox).SelectedItem as Algorithms;
-
-            SalaryListBox.ItemsSource = null;
-            DurationTextBox.Text = @"0.000 seconds";
-            worker.RunWorkerAsync(item);
-
-            e.Handled = true;
         }
 
         /// <summary>
@@ -235,22 +238,33 @@ namespace Prog3AT2_Three
             {
             }
 
+            /// <summary>
+            /// Initializes a new instance of the <see cref="Algorithms"/> class.
+            /// </summary>
+            /// <param name="name">The name.</param>
+            /// <param name="label">The label.</param>
+            /// <param name="value">The value.</param>
             public Algorithms(string name, string label, int value) : base(name, value)
             {
                 Label = label;
             }
 
+            /// <summary>
+            /// Gets the label.
+            /// </summary>
+            /// <value>
+            /// The label.
+            /// </value>
             public string Label { get; }
 
+            /// <summary>
+            /// Converts to string.
+            /// </summary>
+            /// <returns></returns>
             public override string ToString()
             {
                 return Label;
             }
-        }
-
-        private void CancelButton_Click(object sender, RoutedEventArgs e)
-        {
-            worker.CancelAsync();
         }
     }
 }
