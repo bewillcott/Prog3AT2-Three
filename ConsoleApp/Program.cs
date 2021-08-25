@@ -25,6 +25,8 @@
 
 namespace ConsoleApp
 {
+    using NUnit.Framework;
+
     using SortingLib;
 
     using System;
@@ -52,7 +54,7 @@ namespace ConsoleApp
         /// <summary>
         /// The maximum salary
         /// </summary>
-        private const int MAX_SALARY = 10000000;
+        private const int MAX_SALARY = 1000000;
 
         /// <summary>
         /// The minimum salary
@@ -88,18 +90,26 @@ namespace ConsoleApp
         {
             var helper = new Helper(list, RANDOM_SEED, MIN_SALARY, MAX_SALARY);
             var rows = new CsvRow[] {
-                new(@"list.Sort"),
+                new(@"Array.Sort"),
                 new(@"Heap Sort"),
                 new(@"Merge Sort"),
+                new(@"Top-down Merge Sort"),
                 new(@"Quick Sort")
             };
 
+            var ls = Array.Empty<int>();
+            var tdms = Array.Empty<int>();
+
             for (int i = 0; i < NUM_OF_TEST_RUNS; i++)
             {
-                rows[0].Add(helper.SortIt(null, $"list.Sort [{i + 1}]", null));
+                rows[0].Add(helper.SortIt(Sorting.ArraySort, $"Array.Sort [{i + 1}]", null));
+                ls = list.ToArray();
                 rows[1].Add(helper.SortIt(Sorting.HeapSort, $"Heap Sort [{i + 1}]", null));
                 rows[2].Add(helper.SortIt(Sorting.MergeSort, $"Merge Sort [{i + 1}]", null));
-                rows[3].Add(helper.SortIt(Sorting.QuickSort, $"Quick Sort [{i + 1}]", null));
+                rows[3].Add(helper.SortIt(Sorting.TopDownMergeSort, $"Top-down Merge Sort [{i + 1}]", null));
+                tdms = list.ToArray();
+                rows[4].Add(helper.SortIt(Sorting.QuickSort, $"Quick Sort [{i + 1}]", null));
+                Console.WriteLine(@"--------------------------------------------------------------");
             }
 
             Console.WriteLine($"Writing data to CSV filename: {FILENAME}");
@@ -114,10 +124,16 @@ namespace ConsoleApp
             }
 
             Console.WriteLine($"\nAverage results over {NUM_OF_TEST_RUNS} test runs:");
-            Console.WriteLine($" - list.Sort  : {rows[0].Avg:F3}");
-            Console.WriteLine($" - HeapSort   : {rows[1].Avg:F3}");
-            Console.WriteLine($" - MergeSort  : {rows[2].Avg:F3}");
-            Console.WriteLine($" - QuickSort  : {rows[3].Avg:F3}");
+            Console.WriteLine($" - Array.Sort           : {rows[0].Avg:F3}");
+            Console.WriteLine($" - HeapSort            : {rows[1].Avg:F3}");
+            Console.WriteLine($" - MergeSort           : {rows[2].Avg:F3}");
+            Console.WriteLine($" - Top-down MergeSort  : {rows[3].Avg:F3}");
+            Console.WriteLine($" - QuickSort           : {rows[4].Avg:F3}");
+
+            for (int i = 0; i < ls.Length; i++)
+            {
+                Assert.IsTrue(ls[i] == tdms[i], $"Top-down Merge Sort failed at [{i}]");
+            }
         }
 
         /// <summary>

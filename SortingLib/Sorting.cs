@@ -23,6 +23,7 @@
  * ****************************************************************
  */
 
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 
@@ -34,9 +35,19 @@ namespace SortingLib
     public static class Sorting
     {
         /// <summary>
+        /// Sorts the <paramref name="listArray"/> using the <see cref="Array.Sort(Array)"/> algorithm.
+        /// </summary>
+        /// <param name="listArray">The list.</param>
+        /// <param name="bw">The bw.</param>
+        public static void ArraySort(int[] listArray, BackgroundWorker bw)
+        {
+            Array.Sort<int>(listArray);
+        }
+
+        /// <summary>
         ///The Heap Sort algorithm.
         /// </summary>
-        /// <param name="list">The list.</param>
+        /// <param name="listArray">The list.</param>
         /// <param name="bw">Worker thread.</param>
         /// <remarks>
         /// O(n Log n)
@@ -47,30 +58,30 @@ namespace SortingLib
         /// - Renamed variables<br/>
         /// - Replaced some code with method call
         /// </remarks>
-        public static void HeapSort(IList<int> list, BackgroundWorker bw)
+        public static void HeapSort(int[] listArray, BackgroundWorker bw)
         {
-            var numOfElements = list.Count;
+            var numOfElements = listArray.Length;
 
             // Build heap (rearrange array)
             for (int i = numOfElements / 2 - 1; i >= 0 && (bw == null || !bw.CancellationPending); i--)
-                Heapify(list, numOfElements, i, bw);
+                Heapify(listArray, numOfElements, i, bw);
 
             // One by one extract an element from heap
             for (int i = numOfElements - 1; i > 0 && (bw == null || !bw.CancellationPending); i--)
             {
                 // Move current root to end
                 // (BW) replaced with method call
-                Exchange(list, 0, i);
+                Exchange(listArray, 0, i);
 
                 // call max heapify on the reduced heap
-                Heapify(list, i, 0, bw);
+                Heapify(listArray, i, 0, bw);
             }
         }
 
         /// <summary>
         /// The Merge Sort algorithm.
         /// </summary>
-        /// <param name="list">The list.</param>
+        /// <param name="listArray">The list.</param>
         /// <param name="bw">Worker thread.</param>
         /// <remarks>
         /// Merge sort is based on the divide-and-conquer paradigm.<br/>
@@ -78,15 +89,15 @@ namespace SortingLib
         /// https://www.csharpstar.com/merge-sort-csharp-program/
         /// <br/>and cleaned up.
         /// </remarks>
-        public static void MergeSort(IList<int> list, BackgroundWorker bw)
+        public static void MergeSort(int[] listArray, BackgroundWorker bw)
         {
-            MergeSort_Divide(list, 0, list.Count - 1, bw);
+            MergeSort_Divide(listArray, 0, listArray.Length - 1, bw);
         }
 
         /// <summary>
         /// The Quick Sort algorithm.
         /// </summary>
-        /// <param name="list">The list.</param>
+        /// <param name="listArray">The list.</param>
         /// <param name="bw">Worker thread.</param>
         /// <remarks>
         /// Worst case: O(N²)<br/>
@@ -95,9 +106,40 @@ namespace SortingLib
         /// http://anh.cs.luc.edu/170/notes/CSharpHtml/sorting.html
         /// <br/>and cleaned up.
         /// </remarks>
-        public static void QuickSort(IList<int> list, BackgroundWorker bw)
+        public static void QuickSort(int[] listArray, BackgroundWorker bw)
         {
-            IntArrayQuickSort(list, 0, list.Count - 1, bw);
+            IntArrayQuickSort(listArray, 0, listArray.Length - 1, bw);
+        }
+
+        /// <summary>
+        /// Top-down Merge Sort algorithm.
+        /// </summary>
+        /// <remarks>
+        /// This is an implementation of the 'C-like code' here:<br/>
+        /// https://en.wikipedia.org/wiki/Merge_sort
+        /// <br/>under the title: <b>Top-down implementation</b>.
+        /// <para/>
+        /// I have made some logic changes, as I believe they have the sort from to arrays
+        /// around the wrong way.
+        /// </remarks>
+        /// <param name="listArray">The list.</param>
+        /// <param name="bw">Worker thread.</param>
+        public static void TopDownMergeSort(int[] listArray, BackgroundWorker bw)
+        {
+            var B = new int[listArray.Length];
+            var A = new int[listArray.Length];
+
+            // One-time copy
+            listArray.CopyTo(B, 0);
+            listArray.CopyTo(A, 0);
+
+            // Sort data from B[] to A[]
+            TopDownSplitMerge(B, 0, B.Length, A, bw);
+
+            for (int i = 0; i < listArray.Length; i++)
+            {
+                listArray[i] = A[i];
+            }
         }
 
         /// <summary>
@@ -112,7 +154,7 @@ namespace SortingLib
         /// <param name="list">The data.</param>
         /// <param name="m">The m.</param>
         /// <param name="n">The n.</param>
-        private static void Exchange(IList<int> list, int m, int n)
+        private static void Exchange(int[] list, int m, int n)
         {
             var temporary = list[m];
             list[m] = list[n];
@@ -134,7 +176,7 @@ namespace SortingLib
         /// - Renamed variables<br/>
         /// - Replaced some code with method call
         /// </remarks>
-        private static void Heapify(IList<int> list, int sizeOfHeap,
+        private static void Heapify(int[] list, int sizeOfHeap,
             int indexOfRoot, BackgroundWorker bw)
         {
             var indexOfLargest = indexOfRoot; // Initialize largest as root
@@ -173,7 +215,7 @@ namespace SortingLib
         /// <br/>and cleaned up.
         /// - Renamed parameters
         /// </remarks>
-        private static void IntArrayQuickSort(IList<int> list, int leftIndex,
+        private static void IntArrayQuickSort(int[] list, int leftIndex,
             int rightIndex, BackgroundWorker bw)
         {
             int i, j;
@@ -223,7 +265,7 @@ namespace SortingLib
         /// https://www.geeksforgeeks.org/merge-sort/
         /// <br/>and cleaned up.
         /// </remarks>
-        private static void MergeSort_Conquer(IList<int> list, int leftIndex, int midIndex,
+        private static void MergeSort_Conquer(int[] list, int leftIndex, int midIndex,
             int rightIndex, BackgroundWorker bw)
         {
             // Find sizes of two
@@ -308,7 +350,7 @@ namespace SortingLib
         /// https://www.geeksforgeeks.org/merge-sort/
         /// <br/>and cleaned up.
         /// </remarks>
-        private static void MergeSort_Divide(IList<int> list, int leftIndex,
+        private static void MergeSort_Divide(int[] list, int leftIndex,
             int rightIndex, BackgroundWorker bw)
         {
             if (leftIndex < rightIndex)
@@ -324,6 +366,62 @@ namespace SortingLib
 
                 // Merge the sorted halves
                 MergeSort_Conquer(list, leftIndex, midIndex, rightIndex, bw);
+            }
+        }
+
+        /// <summary>
+        /// Tops down merge.
+        /// </summary>
+        /// <param name="A">The working copy.</param>
+        /// <param name="iBegin">The i begin.</param>
+        /// <param name="iMiddle">The i middle.</param>
+        /// <param name="iEnd">The i end.</param>
+        /// <param name="B">The list.</param>
+        /// <param name="bw">Worker thread.</param>
+        // Left source half is A[ iBegin:iMiddle-1].
+        // Right source half is A[iMiddle:iEnd-1   ].
+        // Result is            B[ iBegin:iEnd-1   ].
+        private static void TopDownMerge(int[] A, int iBegin, int iMiddle, int iEnd, int[] B, BackgroundWorker bw)
+        {
+            var i = iBegin;
+
+            var j = iMiddle;
+
+            for (int k = iBegin; k < iEnd && (bw == null || !bw.CancellationPending); k++)
+            {
+                if (i < iMiddle && (j >= iEnd || A[i] <= A[j]))
+                {
+                    B[k] = A[i];
+                    i++;
+                }
+                else
+                {
+                    B[k] = A[j];
+                    j++;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Tops down split merge.
+        /// </summary>
+        /// <param name="B">The working copy.</param>
+        /// <param name="iBegin">The i begin.</param>
+        /// <param name="iEnd">The i end.</param>
+        /// <param name="A">The original data.</param>
+        /// <param name="bw">Worker thread.</param>
+        // Split A[] into 2 runs, sort both runs into B[], merge both runs from B[] to A[]
+        // iBegin is inclusive; iEnd is exclusive (A[iEnd] is not in the set).
+        private static void TopDownSplitMerge(int[] B, int iBegin, int iEnd, int[] A, BackgroundWorker bw)
+        {
+            if (iEnd - iBegin > 1 && (bw == null || !bw.CancellationPending))
+            {
+                var iMiddle = (iEnd + iBegin) / 2;
+
+                TopDownSplitMerge(A, iBegin, iMiddle, B, bw);
+                TopDownSplitMerge(A, iMiddle, iEnd, B, bw);
+
+                TopDownMerge(B, iBegin, iMiddle, iEnd, A, bw);
             }
         }
     }

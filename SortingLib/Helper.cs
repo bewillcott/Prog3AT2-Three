@@ -81,11 +81,14 @@ namespace SortingLib
         /// </summary>
         public void GenerateIntArray()
         {
-            var r = new Random(seed);
-            list.Clear();
-            for (int i = 0; i < list.Capacity; i++)
+            if (seed != -1)
             {
-                list.Add(r.Next(min, max));
+                var r = new Random(seed);
+                list.Clear();
+                for (int i = 0; i < list.Capacity; i++)
+                {
+                    list.Add(r.Next(min, max));
+                }
             }
         }
 
@@ -96,24 +99,34 @@ namespace SortingLib
         /// <param name="text">The text.</param>
         /// <param name="bw">Worker thread.</param>
         /// <returns>The elapsed time.</returns>
-        public double SortIt(Action<IList<int>, BackgroundWorker> methodName, string text, BackgroundWorker bw)
+        public double SortIt(Action<int[], BackgroundWorker> methodName, string text, BackgroundWorker bw)
         {
             Console.Write($"Processing {text} => ");
             double elapsedTime;  // time in second, accurate to about milliseconds
             GenerateIntArray();
 
-            watch.Restart();
-
             if (methodName != null)
             {
-                methodName?.Invoke(list, bw);
+                // create working copy
+                var listArray = new int[list.Count];
+                list.CopyTo(listArray, 0);
+
+                watch.Restart();
+                methodName?.Invoke(listArray, bw);
+                watch.Stop();
+
+                // Copy sorted array back over the 'list'
+                for (int i = 0; i < list.Count; i++)
+                {
+                    list[i] = listArray[i];
+                }
             }
             else
             {
+                watch.Restart();
                 list.Sort();
+                watch.Stop();
             }
-
-            watch.Stop();
 
             elapsedTime = watch.ElapsedMilliseconds / 1000.0;
             Console.WriteLine($"{elapsedTime:F3}");
