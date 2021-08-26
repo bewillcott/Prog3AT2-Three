@@ -29,9 +29,7 @@ namespace Prog3AT2_Three
 
     using SortingLib;
 
-    using System;
     using System.Collections.Generic;
-    using System.Collections.ObjectModel;
     using System.ComponentModel;
     using System.Windows;
     using System.Windows.Controls;
@@ -44,7 +42,7 @@ namespace Prog3AT2_Three
         /// <summary>
         /// The array size.
         /// </summary>
-        private const int ARRAY_SIZE = 10000000;
+        private const int ARRAY_SIZE = 1000000;
 
         /// <summary>
         /// The maximum salary.
@@ -133,9 +131,9 @@ namespace Prog3AT2_Three
         {
             var rtn = 0.000;
 
-            if (item == Algorithms.ListSort)
+            if (item == Algorithms.ArraySort)
             {
-                rtn = helper.SortIt(null, @"list.Sort", bw);
+                rtn = helper.SortIt(Sorting.ArraySort, @"Array.Sort", bw);
             }
             else if (item == Algorithms.HeapSort)
             {
@@ -223,11 +221,11 @@ namespace Prog3AT2_Three
         /// </summary>
         public sealed class Algorithms : SmartEnum<Algorithms>
         {
-            public static readonly Algorithms HeapSort = new(nameof(HeapSort), "Heap Sort", 2);
-            public static readonly Algorithms ListSort = new(nameof(ListSort), "List Sort", 1);
-            public static readonly Algorithms MergeSort = new(nameof(MergeSort), "Merge Sort", 3);
-            public static readonly Algorithms QuickSort = new(nameof(QuickSort), "Quick Sort", 4);
-            public static readonly Algorithms Unsorted = new(" Unsorted", "=Unsorted=", 0);
+            public static readonly Algorithms ArraySort = new(nameof(ArraySort), @"Array.Sort", 1);
+            public static readonly Algorithms HeapSort = new(nameof(HeapSort), @"Heap Sort", 2);
+            public static readonly Algorithms MergeSort = new(nameof(MergeSort), @"Merge Sort", 3);
+            public static readonly Algorithms QuickSort = new(nameof(QuickSort), @"Quick Sort", 4);
+            public static readonly Algorithms Unsorted = new(" Unsorted", @"=Unsorted=", 0);
 
             /// <summary>
             /// Initializes a new instance of the <see cref="Algorithms"/> class.

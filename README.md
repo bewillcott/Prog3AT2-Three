@@ -20,11 +20,12 @@ the rest must be written into the source code.
 ## Implementation
 This project consists of four sub-projects within the one Visual Studio session:
 
-- ConsoleAppTest
+- ConsoleApp
 - SortingLib
 - Prog3AT2-Two
+- TestProject1
 
-### ConsoleAppTest
+### ConsoleApp
 This is a small console application that exercises all of the sorting algorithms,
 for the purposes of testing and producing the timing data for documentary reference purposes.
 
@@ -34,4 +35,8 @@ This is a Class Library that contains the `Sorting` and `Helper` classes.
 ### Prog3AT2-Three
 This is the GUI program that provides the means to utilize the sorting algorithms,
 in much the same way as the console application.
+
+### TestProject1
+A simple test to make sure my C# implementation of the Top-down Merge Sort routine C-like code from Wikipedia
+actually worked properly.
 

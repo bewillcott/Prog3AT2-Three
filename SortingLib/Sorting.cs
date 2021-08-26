@@ -23,12 +23,11 @@
  * ****************************************************************
  */
 
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-
 namespace SortingLib
 {
+    using System;
+    using System.ComponentModel;
+
     /// <summary>
     /// Defines the <see cref="Sorting" />.
     /// </summary>

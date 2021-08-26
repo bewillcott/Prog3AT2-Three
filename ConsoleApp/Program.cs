@@ -31,10 +31,8 @@ namespace ConsoleApp
 
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.IO;
     using System.Text;
-    using System.Threading;
 
     /// <summary>
     /// Defines the <see cref="Program" />.
@@ -44,7 +42,7 @@ namespace ConsoleApp
         /// <summary>
         /// The array size
         /// </summary>
-        private const int ARRAY_SIZE = 10000000;
+        private const int ARRAY_SIZE = 1000000;
 
         /// <summary>
         /// The filename

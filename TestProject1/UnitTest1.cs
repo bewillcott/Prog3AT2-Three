@@ -25,10 +25,12 @@
 
 namespace TestProject1
 {
-    using SortingLib;
     using NUnit.Framework;
-    using System.Collections.Generic;
+
+    using SortingLib;
+
     using System;
+    using System.Collections.Generic;
     using System.Text;
 
     /// <summary>
@@ -54,12 +56,13 @@ namespace TestProject1
         {
             var list = new MyList(TEST_DATA);
 
-            var helper = new Helper(list, 1234, 10000, 1000000);
+            var helper = new Helper(list, -1, 10000, 1000000);
             helper.SortIt(Sorting.ArraySort, $"Array.Sort", null);
             var ls = list.ToArray();
             Console.Error.WriteLine(list);
 
             list = new MyList(TEST_DATA);
+            helper = new Helper(list, -1, 10000, 1000000);
             helper.SortIt(Sorting.TopDownMergeSort, $"Top-down Merge Sort", null);
             Console.Error.WriteLine(list);
 

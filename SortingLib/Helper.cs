@@ -41,9 +41,9 @@ namespace SortingLib
         private readonly List<int> list;
 
         /// <summary>
-        /// Defines the seed.
+        /// Defines the max.
         /// </summary>
-        private readonly int seed;
+        private readonly int max;
 
         /// <summary>
         /// Defines the min.
@@ -51,9 +51,9 @@ namespace SortingLib
         private readonly int min;
 
         /// <summary>
-        /// Defines the max.
+        /// Defines the seed.
         /// </summary>
-        private readonly int max;
+        private readonly int seed;
 
         /// <summary>
         /// Defines the watch.
